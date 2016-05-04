@@ -30,19 +30,28 @@ class DatePatternFileMatcher {
         }
     }
 
-    File[] matchFilesInDateRange(long start, long end) {
+    String[] getFileNamesInDateRange(long start, long end) {
         long periods = rc.periodBarriersCrossed(start, end);
-        List<File> files = new ArrayList<File>();
+        String[] ret = new String[(int)periods];
         Date lastDate = new Date(start);
 
         for (int i = 0; i < periods; ++i) {
-            File f = new File(filePattern.convert(lastDate));
-            if (f.exists() && !f.isDirectory()) {
-                files.add(f);
-            }
+            ret[i] = filePattern.convert(lastDate);
             lastDate = rc.getNextTriggeringDate(lastDate);
         }
 
+        return ret;
+    }
+
+    File[] matchFilesInDateRange(long start, long end) {
+        List<File> files = new ArrayList<File>();
+        String[] fileNames = getFileNamesInDateRange(start, end);
+        for (String fileName : fileNames) {
+            File f = new File(fileName);
+            if (f.exists() && !f.isDirectory()) {
+                files.add(f);
+            }
+        }
         return files.toArray(new File[files.size()]);
     }
 
