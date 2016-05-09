@@ -31,6 +31,9 @@ public class RollingArchivePacker {
 
     protected boolean started = false;
 
+    //encryptor with password="pswd"
+    private Encryptor encryptor = new Encryptor("pswd");
+
     public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern) {
         this.srcPatterns = srcFilePatterns;
         this.destPattern = new FileNamePattern(destFilePattern, ctx);
@@ -88,6 +91,7 @@ public class RollingArchivePacker {
                         if (IOUtils.isZipFile(file)) {
                             // input stream is a zipped file: pipe every entry of it into out stream
                             try {
+                                //encryptor.decryptFile("Encrypt"+file.getName(),file.getName());
                                 ZipFile zip = new ZipFile(file);
                                 Enumeration<? extends ZipEntry> entries = zip.entries();
                                 while (entries.hasMoreElements()) {
@@ -120,6 +124,7 @@ public class RollingArchivePacker {
                     }
                 }
             }
+            encryptor.encryptFile(zipFileName,"Encrypt"+zipFileName);
             zout.close();
             fout.close();
         } catch (FileNotFoundException e) {
@@ -139,6 +144,18 @@ public class RollingArchivePacker {
 
     public boolean isStarted() {
         return started;
+    }
+
+    public static  void main(String[] args){
+
+        String[] dailySourceFilePatterns = new String[]{ "resource/tahiti/message/client_message_%d{yyyy_MM_dd}.log"};
+
+        String dailyDestFilePattern="resource/tahiti_archive/daily/%d{yyyy_MM_dd}.zip";
+
+
+        RollingArchivePacker r=  new RollingArchivePacker(dailySourceFilePatterns, dailyDestFilePattern);
+
+        r.start();
     }
 
 }
