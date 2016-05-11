@@ -6,6 +6,8 @@ import ch.qos.logback.core.rolling.helper.DateTokenConverter;
 import ch.qos.logback.core.rolling.helper.FileNamePattern;
 import ch.qos.logback.core.rolling.helper.RollingCalendar;
 
+import com.alutam.ziputils.ZipEncryptOutputStream;
+
 import java.io.*;
 import java.util.Date;
 import java.util.Enumeration;
@@ -16,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
 
 public class RollingArchivePacker {
 
@@ -30,9 +33,6 @@ public class RollingArchivePacker {
     protected ScheduledExecutorService executorService;
 
     protected boolean started = false;
-
-    //encryptor with password="pswd"
-    private Encryptor encryptor = new Encryptor("pswd");
 
     public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern) {
         this.srcPatterns = srcFilePatterns;
@@ -82,7 +82,8 @@ public class RollingArchivePacker {
 
         try {
             FileOutputStream fout = new FileOutputStream(zipFileName);
-            ZipOutputStream zout = new ZipOutputStream(fout);
+            ZipEncryptOutputStream zeos = new ZipEncryptOutputStream(fout, "pswd");
+            ZipOutputStream zout = new ZipOutputStream(zeos);
 
             for (DatePatternFileMatcher matcher : srcMatchers) {
                 File[] files = matcher.matchFilesInDateRange(lastPeriodStartInMilliSrc, periodStartInMilliSec);
@@ -124,7 +125,6 @@ public class RollingArchivePacker {
                     }
                 }
             }
-            encryptor.encryptFile(zipFileName,"Encrypt"+zipFileName);
             zout.close();
             fout.close();
         } catch (FileNotFoundException e) {
@@ -146,16 +146,8 @@ public class RollingArchivePacker {
         return started;
     }
 
-    public static  void main(String[] args){
-
-        String[] dailySourceFilePatterns = new String[]{ "resource/tahiti/message/client_message_%d{yyyy_MM_dd}.log"};
-
-        String dailyDestFilePattern="resource/tahiti_archive/daily/%d{yyyy_MM_dd}.zip";
 
 
-        RollingArchivePacker r=  new RollingArchivePacker(dailySourceFilePatterns, dailyDestFilePattern);
 
-        r.start();
-    }
 
 }
