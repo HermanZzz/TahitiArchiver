@@ -29,14 +29,16 @@ public class RollingArchivePacker {
     protected DatePatternFileMatcher[] srcMatchers;
 
     protected RollingCalendar rc;
+    private String sKey;
 
     protected ScheduledExecutorService executorService;
 
     protected boolean started = false;
 
-    public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern) {
+    public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern, String sKey) {
         this.srcPatterns = srcFilePatterns;
         this.destPattern = new FileNamePattern(destFilePattern, ctx);
+        this.sKey = sKey;
         this.srcMatchers = new DatePatternFileMatcher[srcPatterns.length];
         for (int i = 0; i < srcPatterns.length; ++i) {
             this.srcMatchers[i] = new DatePatternFileMatcher(this.srcPatterns[i], ctx);
@@ -82,7 +84,7 @@ public class RollingArchivePacker {
 
         try {
             FileOutputStream fout = new FileOutputStream(zipFileName);
-            ZipEncryptOutputStream zeos = new ZipEncryptOutputStream(fout, "pswd");
+            ZipEncryptOutputStream zeos = new ZipEncryptOutputStream(fout, sKey);
             ZipOutputStream zout = new ZipOutputStream(zeos);
 
             for (DatePatternFileMatcher matcher : srcMatchers) {
@@ -141,6 +143,10 @@ public class RollingArchivePacker {
     public String[] getSrcFilePatterns() {
         return srcPatterns;
     }
+
+    public String getsKey(){ return sKey;}
+
+    public void setsKey(String sKey){  this.sKey = sKey; }
 
     public boolean isStarted() {
         return started;
