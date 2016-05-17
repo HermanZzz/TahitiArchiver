@@ -29,16 +29,16 @@ public class RollingArchivePacker {
     protected DatePatternFileMatcher[] srcMatchers;
 
     protected RollingCalendar rc;
-    private String sKey;
+    private String password;
 
     protected ScheduledExecutorService executorService;
 
     protected boolean started = false;
 
-    public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern, String sKey) {
+    public RollingArchivePacker(String[] srcFilePatterns, String destFilePattern, String password) {
         this.srcPatterns = srcFilePatterns;
         this.destPattern = new FileNamePattern(destFilePattern, ctx);
-        this.sKey = sKey;
+        this.password = password;
         this.srcMatchers = new DatePatternFileMatcher[srcPatterns.length];
         for (int i = 0; i < srcPatterns.length; ++i) {
             this.srcMatchers[i] = new DatePatternFileMatcher(this.srcPatterns[i], ctx);
@@ -84,7 +84,7 @@ public class RollingArchivePacker {
 
         try {
             FileOutputStream fout = new FileOutputStream(zipFileName);
-            ZipEncryptOutputStream zeos = new ZipEncryptOutputStream(fout, sKey);
+            ZipEncryptOutputStream zeos = new ZipEncryptOutputStream(fout, password);
             ZipOutputStream zout = new ZipOutputStream(zeos);
 
             for (DatePatternFileMatcher matcher : srcMatchers) {
@@ -94,7 +94,7 @@ public class RollingArchivePacker {
                         if (IOUtils.isZipFile(file)) {
                             // input stream is a zipped file: pipe every entry of it into out stream
                             try {
-                                //encryptor.decryptFile("Encrypt"+file.getName(),file.getName());
+
                                 ZipFile zip = new ZipFile(file);
                                 Enumeration<? extends ZipEntry> entries = zip.entries();
                                 while (entries.hasMoreElements()) {
@@ -144,15 +144,13 @@ public class RollingArchivePacker {
         return srcPatterns;
     }
 
-    public String getsKey(){ return sKey;}
+    public String getPassword(){ return password;}
 
-    public void setsKey(String sKey){  this.sKey = sKey; }
+    public void setPassword(String password){  this.password = password; }
 
     public boolean isStarted() {
         return started;
     }
-
-
 
 
 
